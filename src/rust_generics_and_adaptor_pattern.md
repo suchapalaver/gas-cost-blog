@@ -2,13 +2,15 @@
 
 ## Adding Support for L1 and OP Stack Chains in Gas Cost Calculation
 
-As part of recent work on Semioscan, I implemented a flexible, type-safe system
-for calculating gas costs across multiple Ethereum-compatible chains. This includes
-both L1 chains (like Ethereum Mainnet, where no L1 data fees are involved) and OP
-Stack-based L2s (like Optimism, where gas fees include an additional L1 data
-component). This post walks through how I used Rust's generics and the adapter
-pattern to support this cleanly across network types, while maintaining compile-time
-guarantees and avoiding runtime branching.
+As part of recent work at [Semiotic](https://semiotic.ai/), I implemented a flexible,
+type-safe system for calculating gas costs across multiple Ethereum-compatible chains.
+This includes both L1 chains (like Ethereum Mainnet, where no L1 data fees are involved)
+and [OP Stack](https://docs.optimism.io/stack/getting-started)-based L2s (like Optimism,
+where gas fees include an additional L1 data component). This post walks through how
+I used [Rust's generics](https://doc.rust-lang.org/book/ch10-01-syntax.html) and the
+[adapter pattern](https://refactoring.guru/design-patterns/adapter) to support this
+cleanly across network types, while maintaining compile-time guarantees and avoiding
+runtime branching.
 
 ## 1. The Core Generic Architecture
 
@@ -23,7 +25,7 @@ where
 }
 ```
 
-**Key Learning**: This demonstrates **bounded generics** where `N` must implement the `Network` trait, and its associated type `TransactionResponse` must implement specific traits. This constraint ensures type safety while allowing generic behavior.
+**Key Learning**: This demonstrates **bounded generics** where `N` must implement the `Network` trait, and its associated type `TransactionResponse` must implement specific traits. This constraint ensures type safety while allowing generic behavior. The types used here, such as `U256` and `Network` (and others like `Address`, `Log`, `TransactionTrait`, `Typed2718`, `ReceiptResponse` appearing later), are core components provided by the [Alloy Project](https://alloy.rs/), a foundational library for Ethereum development in Rust.
 
 ## 2. The Adapter Pattern with Generic Traits
 
@@ -73,7 +75,7 @@ impl ReceiptAdapter<Optimism> for OptimismReceiptAdapter {
 }
 ```
 
-**Key Learning**: Each adapter implements the same interface but handles network-specific receipt structures. Notice how Optimism receipts have an `inner` field and `l1_block_info`, while Ethereum receipts have direct access.
+**Key Learning**: Each adapter implements the same interface but handles network-specific receipt structures. Notice how Optimism receipts have an `inner` field and `l1_block_info`, while Ethereum receipts have direct access. For Optimism, we use `OptimismReceiptAdapter`, which leverages types and structures from the [op-alloy crate](https://github.com/alloy-rs/op-alloy), a specialized extension of Alloy for OP Stack chains.
 
 ## 3. Generic Functions with Multiple Type Parameters
 
@@ -154,7 +156,7 @@ fn calculate_blob_gas_cost<N: Network>(transaction: &N::TransactionResponse) -> 
 }
 ```
 
-**Key Learning**: Generic functions can work with any type that satisfies the bounds. Here, any `N::TransactionResponse` that implements the required traits can use this blob gas calculation.
+**Key Learning**: Generic functions can work with any type that satisfies the bounds. Here, any `N::TransactionResponse` that implements the required traits can use this blob gas calculation. The `is_eip4844()` method checks if the transaction conforms to [EIP-4844](https://eips.ethereum.org/EIPS/eip-4844), which introduced blob transactions.
 
 ## 6. Network-Specific Implementations
 
@@ -204,4 +206,4 @@ impl GasCostCalculator<Ethereum> {
 3. **Associated Types**: Clean, ergonomic interfaces
 4. **Memory Safety**: No runtime overhead for polymorphism
 
-Rust's type system enables powerful abstractions without sacrificing performance or safety - a perfect example for students learning advanced Rust patterns and software engineering principles.
+Rust's type system enables powerful abstractions without sacrificing performance or safety - a perfect example for students learning advanced Rust patterns and software engineering principles. These capabilities are further enhanced by robust libraries like the [Alloy Project](https://alloy.rs/) and its extensions like [op-alloy](https://github.com/alloy-rs/op-alloy) for OP Stack specifics.
