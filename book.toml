@@ -1,0 +1,5 @@
+[book]
+authors = ["Joseph Livesey"]
+language = "en"
+src = "src"
+title = "Rust Generics & Adapter Pattern in Blockchain Gas"
