@@ -3,3 +3,10 @@ authors = ["Joseph Livesey"]
 language = "en"
 src = "src"
 title = "Rust Generics & Adapter Pattern in Blockchain Gas"
+
+[output.html]
+default-theme = "light"
+preferred-dark-theme = "navy"
+
+[build]
+build-dir = "docs"
